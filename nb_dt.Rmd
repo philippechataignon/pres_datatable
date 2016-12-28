@@ -1,0 +1,222 @@
+---
+title: "Présentation data.table"
+author: "Philippe Chataignon"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+# data.frame
+
+```{r}
+df <- data.frame(
+  id=c('A', 'A', 'B', 'C', 'B', 'C', 'A', 'B'), 
+  value1=c(5,9,4,3,2,7,6,1), 
+  value2=c(8,4,6,3,2,1,5,7),
+  stringsAsFactors = F
+)
+df
+```
+
+## Filtrer les lignes
+
+```{r}
+df[df$id == 'A',]
+```
+
+## Sélectionner une colonne
+
+```{r}
+df[,"value1"]
+```
+
+## Les deux en même temps
+
+```{r}
+df[df$id == 'A', "value1"]
+```
+
+# data.table
+
+```{r}
+library(data.table)
+dt <- data.table(
+  id=c('A', 'A', 'B', 'C', 'B', 'C', 'A', 'B'), 
+  value1=c(5,9,4,3,2,7,6,1), 
+  value2=c(8,4,6,3,2,1,5,7)
+)
+dt
+```
+
+## Filtrer les lignes
+
+```{r}
+# la syntaxe df fonctionne également
+dt[id == 'A',]
+```
+
+## Sélectionner une colonne
+
+```{r}
+dt[,value1]
+```
+
+## Les deux en même temps
+
+```{r}
+dt[id == 'A', value1]
+```
+
+# Somme de value1 pour id A
+## data.frame
+
+```{r}
+sum(df[df$id == 'A', "value1"])
+```
+
+## data.table
+```{r}
+dt[id=='A', sum(value1)]
+```
+
+# Somme de value1 et value2 pour chaque id
+## data.frame
+
+```{r}
+aggregate(cbind(value1, value2) ~ id, 
+          df, 
+          sum
+)
+```
+
+## data.table
+```{r}
+dt[,
+   .(value1=sum(value1), value2=sum(value2)), 
+   by=id
+]
+```
+
+# Somme de value1 et value2 pour chaque id sauf B
+## data.frame
+
+```{r}
+aggregate(
+  cbind(value1, value2) ~ id, 
+  df[df$id != 'B',], 
+  sum
+)
+```
+
+## data.table
+```{r}
+dt[
+  id != 'B',
+  .(value1=sum(value1), value2=sum(value2)), 
+  by=id
+]
+```
+
+## data.table (variante SDcols)
+```{r}
+dt[
+  id != 'B',
+  lapply(.SD, sum),
+  by=id,
+  .SDcols=c('value1', 'value2')
+]
+```
+# Performance
+
+data.table est très performant sur des tables volumineuses,
+de l'ordre de quelque Go car elles doivent tenir en RAM. 
+On peut utiliser ``dplyr`` pour récupérer les données depuis une
+base de données (PostgreSQL, Netezza, MySQL...) avant de travailler
+avec ``data.table``.
+
+Ici, on va créer un data.frame de 100 millions de lignes et le data.table
+correspondant et comparer les résultats en terme de temps d'accès.
+
+## Création d'une table de 100 millions de lignes
+
+```{r}
+grpsize = ceiling(1e8/26^2)
+
+DF <- data.frame(
+  x=rep(LETTERS,each=26*grpsize),
+  y=rep(letters,each=grpsize),
+  v=runif(grpsize*26^2),
+  stringsAsFactors=FALSE
+)
+
+DT <- setDT(DF)
+DT
+```
+
+## Filtre sur une variable
+
+On filtre sur x égal à R avec le data.frame
+
+```{r}
+system.time(ans1 <- DF[DF$x=="R",])
+```
+
+On filtre sur x égal à R avec le data.table : les temps
+sont similaires.
+
+```{r}
+system.time(ans2 <- DT[x=="R",])
+```
+
+Par contre, si on fait une deuxième recherche, le temps
+reste identique pour le data.frame, mais est beaucoup plus 
+rapide pour le data.table.
+
+```{r}
+system.time(ans1 <- DF[DF$x=="E",])
+```
+
+```{r}
+system.time(ans2 <- DT[x=="E",])
+```
+```{r}
+system.time(ans1 <- DF[DF$x=="M",])
+```
+
+```{r}
+system.time(ans2 <- DT[x=="M",])
+```
+
+En fait, dans le cas de filtres simples, data.table crée automatiquement un index
+lors de la première recherche et le réutilise ensuite.
+
+Une possibilité très intéressante de data.table est de pouvoir *indexer* par
+une ou plusieurs variables, ce qui va faciliter et accélérer l'accès aux lignes
+correspondantes.
+
+## Utilsation de clé (key) avec data.table
+
+### Absence de clé
+
+```{r}
+system.time(DF[DF$x=="S" & DF$y=="i",])
+```
+```{r}
+system.time(DT[x=="S" & y=="i",])
+```
+
+### Création d'une clé sur les variables x et y
+
+```{r}
+system.time(setkey(DT, x, y))
+```
+
+### Mesures de temps d'accès
+
+```{r}
+system.time(DT[.("S","i"),])
+```
+
+```{r}
+DT[.("R", "x")]
+```
