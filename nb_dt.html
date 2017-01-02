@@ -289,39 +289,39 @@ DF &lt;- data.frame(
 
 DT &lt;- setDT(DF)
 DT</code></pre>
-<pre><code>##            x y           v
-##         1: A a 0.207493291
-##         2: A a 0.192872079
-##         3: A a 0.001213159
-##         4: A a 0.101364545
-##         5: A a 0.211880264
-##        ---                
-## 100000000: Z z 0.651153691
-## 100000001: Z z 0.451690936
-## 100000002: Z z 0.669736987
-## 100000003: Z z 0.241895776
-## 100000004: Z z 0.008240001</code></pre>
+<pre><code>##            x y         v
+##         1: A a 0.3086487
+##         2: A a 0.5559564
+##         3: A a 0.2861282
+##         4: A a 0.8610778
+##         5: A a 0.4637487
+##        ---              
+## 100000000: Z z 0.4778376
+## 100000001: Z z 0.1357698
+## 100000002: Z z 0.7992830
+## 100000003: Z z 0.9545677
+## 100000004: Z z 0.2816819</code></pre>
 </div>
 <div id="filtre-sur-une-variable" class="section level2">
 <h2>Filtre sur une variable</h2>
 <p>On filtre sur x égal à R avec le data.frame</p>
 <pre class="r"><code>system.time(ans1 &lt;- DF[DF$x==&quot;R&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
-##   0.736   0.076   0.810</code></pre>
+##   0.724   0.088   0.812</code></pre>
 <p>On filtre sur x égal à R avec le data.table : les temps sont similaires.</p>
 <pre class="r"><code>system.time(ans2 &lt;- DT[x==&quot;R&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
-##   0.496   0.112   0.610</code></pre>
+##   0.496   0.112   0.611</code></pre>
 <p>Par contre, si on fait une deuxième recherche, le temps reste identique pour le data.frame, mais est beaucoup plus rapide pour le data.table.</p>
 <pre class="r"><code>system.time(ans1 &lt;- DF[DF$x==&quot;E&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
-##   0.740   0.068   0.807</code></pre>
+##   0.696   0.112   0.809</code></pre>
 <pre class="r"><code>system.time(ans2 &lt;- DT[x==&quot;E&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
 ##   0.104   0.000   0.103</code></pre>
 <pre class="r"><code>system.time(ans1 &lt;- DF[DF$x==&quot;M&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
-##   0.736   0.060   0.795</code></pre>
+##   0.696   0.096   0.796</code></pre>
 <pre class="r"><code>system.time(ans2 &lt;- DT[x==&quot;M&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
 ##   0.100   0.012   0.111</code></pre>
@@ -334,16 +334,16 @@ DT</code></pre>
 <h3>Absence de clé</h3>
 <pre class="r"><code>system.time(DF[DF$x==&quot;S&quot; &amp; DF$y==&quot;i&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
-##   1.408   0.200   1.607</code></pre>
+##   1.408   0.196   1.604</code></pre>
 <pre class="r"><code>system.time(DT[x==&quot;S&quot; &amp; y==&quot;i&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
-##   1.348   0.256   1.604</code></pre>
+##   1.388   0.212   1.602</code></pre>
 </div>
 <div id="creation-dune-cle-sur-les-variables-x-et-y" class="section level3">
 <h3>Création d’une clé sur les variables x et y</h3>
 <pre class="r"><code>system.time(setkey(DT, x, y))</code></pre>
 <pre><code>##    user  system elapsed 
-##   1.060   0.088   1.151</code></pre>
+##   1.084   0.064   1.148</code></pre>
 </div>
 <div id="mesures-de-temps-dacces" class="section level3">
 <h3>Mesures de temps d’accès</h3>
@@ -351,18 +351,18 @@ DT</code></pre>
 <pre><code>##    user  system elapsed 
 ##   0.004   0.000   0.005</code></pre>
 <pre class="r"><code>DT[.(&quot;R&quot;, &quot;x&quot;)]</code></pre>
-<pre><code>##         x y         v
-##      1: R x 0.6448952
-##      2: R x 0.4069492
-##      3: R x 0.5443002
-##      4: R x 0.1096198
-##      5: R x 0.9532676
-##     ---              
-## 147925: R x 0.4137055
-## 147926: R x 0.7360303
-## 147927: R x 0.5446280
-## 147928: R x 0.1263355
-## 147929: R x 0.9080010</code></pre>
+<pre><code>##         x y          v
+##      1: R x 0.03490827
+##      2: R x 0.92936475
+##      3: R x 0.27957014
+##      4: R x 0.67628321
+##      5: R x 0.32098500
+##     ---               
+## 147925: R x 0.58564982
+## 147926: R x 0.87337660
+## 147927: R x 0.03581094
+## 147928: R x 0.20440092
+## 147929: R x 0.15183462</code></pre>
 </div>
 </div>
 </div>
