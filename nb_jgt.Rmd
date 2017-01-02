@@ -22,7 +22,7 @@ jgt
 ```
 
 On voit qu'il y a 3139602 jugements dans la table. On constate également que les colonnes
-date_evt et date_infa ne sont pas au format "date" mais au format "character". On va règler
+``date_evt`` et ``date_infa`` ne sont pas au format *date* mais au format *character*. On va règler
 ce point en utilisant le package ``lubridate``.
 
 ```{r}
@@ -116,8 +116,8 @@ inf[natinf==7325]
 ```
 
 Pour obtenir les jugements correspondants aux infractions, la syntaxe est assez originale.
-Il faut imaginer qu'on passe les clés issues de la table dans le crochet, inf dans notre cas,
-à la table jgt. On obtient ainsi les jugements dont l'une des infractions a le code 7325.
+Il faut imaginer qu'on passe les clés issues de la table dans le crochet, ``inf`` dans notre cas,
+à la table ``jgt``. On obtient ainsi les jugements dont l'une des infractions a le code 7325.
 
 ```{r}
 jgt[inf[natinf==7325]]
