@@ -84,9 +84,16 @@ jgt[culp=='CLP' & ms=='EPR' & date_jgt>='2012-01-01', mean(qt), by=year(date_jgt
 Lecture du fichier des infractions
 
 ```{r}
-inf <- fread('~/data_jgt/jgt_inf.csv')
+inf <- fread(
+  '~/data_jgt/jgt_inf.csv',
+  select=c('PEV_ID', 'NATINF', 'INF_SYNTH', 'JGT_INF_ORDRE', 'ENC_MS', 'ENC_VALEUR')
+  )
+```
+
+Passe les noms des variables en minuscule
+
+```{r}
 setnames(inf, tolower(names(inf)))
-inf <- inf[,.(pev_id, natinf, inf_synth)]
 ```
 
 On va créer une clé (= un index) pour les tables jgt et inf
@@ -127,4 +134,39 @@ On peut ensuite faire le tableau des effectifs annuels :
 
 ```{r}
 jgt[inf[natinf==7325], nomatch=0][,.N,by=.(year(date_jgt))]
+```
+
+## Traitement par bloc
+
+Pour un jugement donné on peut avoir plusieurs infractions. La variable ``jgt_inf_ordre``
+reflète la *gravité* de l'infraction, liée à l'encouru (ici 10 ans=3600 jours de prison).
+
+```{r}
+inf[.(63050337)][order(jgt_inf_ordre)]
+```
+
+On veut garder uniquement la plus grave = infraction principale
+
+```{r}
+setkey(inf, pev_id, jgt_inf_ordre)
+inf
+```
+
+Première possibilité : on utilse .SD qui renvoie dans J les lignes correspondant au
+groupe, dans notre cas, un même pev_id et on applique la fonction ``head`` avec le paramètre 1
+qui renvoit la première ligne.
+
+```{r}
+infp1 <- inf[,head(.SD,1),by=.(pev_id)]
+infp1
+```
+
+Une autre solution consiste à passer utiliser l'index. On passe tous
+les identifiants de pev_id ``unique(pev_id)`` et on dit qu'en cas de lignes multiples,
+ce qui est en général le cas, on ne garde que la première (mult='first'). Comme 
+l'ordre fait partie de la clé, on est sûr d'avoir la plus grave.
+
+```{r}
+infp2 <- inf[.(unique(pev_id)), mult="first"]
+infp2
 ```
