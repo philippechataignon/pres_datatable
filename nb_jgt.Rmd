@@ -17,7 +17,8 @@ setnames(jgt0, tolower(names(jgt0)))
 On va garder uniquement les variables d'intérêt en filtrant sur les jugements au tribunal correctionnel.
 
 ```{r}
-jgt0[etape=='JGT_TC',.(pev_id, date_evt, tgi, ms, tsursis, ssursis, date_infa, culp, qt)] -> jgt
+jgt0[etape=='JGT_TC',.(pev_id, date_evt, tgi, ms, 
+                       tsursis, ssursis, date_infa, culp, qt)] -> jgt
 jgt
 ```
 
@@ -44,6 +45,13 @@ Quelles peines principales pour ces jugements ?
 
 ```{r}
 jgt[year(date_jgt)==2015, .N, by=ms]
+```
+
+Si on veut que la table soit trié
+par groupe, on remplace *by* par *keyby*.
+
+```{r}
+jgt[year(date_jgt)==2015, .N, keyby=ms]
 ```
 
 Et si on triait par effectif décroissant ?
@@ -75,13 +83,13 @@ jgt[culp=='CLP' & ms=='EPR', .N, by=year(date_jgt)][order(year)]
 
 Quantum moyen annuel des peines d'emprisonnement
 
-
 ```{r}
-jgt[culp=='CLP' & ms=='EPR' & date_jgt>='2012-01-01', mean(qt), by=year(date_jgt)][order(year)]
+jgt[culp=='CLP' & ms=='EPR' & date_jgt>='2012-01-01', 
+    mean(qt), 
+    keyby=year(date_jgt)]
 ```
 
-
-Lecture du fichier des infractions
+## Lecture du fichier des infractions
 
 ```{r}
 inf <- fread(
@@ -130,16 +138,28 @@ Il faut imaginer qu'on passe les clés issues de la table dans le crochet, ``inf
 jgt[inf[natinf==7325]]
 ```
 
-On peut ensuite faire le tableau des effectifs annuels :
+On peut ensuite faire le tableau des effectifs 
+(en infraction) annuels :
 
 ```{r}
 jgt[inf[natinf==7325], nomatch=0][,.N,by=.(year(date_jgt))]
 ```
 
+Si on veut compter uniquement les jugements, on utilise
+la fonction *unique*.
+
+```{r}
+jgt[unique(inf[natinf==7325, .(pev_id)]), nomatch=0][,.N,by=.(year(date_jgt))]
+```
+
+En 2015, 419 jugements ont été rendus dont l'une des infractions
+jugées était la 7325.
+
 ## Traitement par bloc
 
-Pour un jugement donné on peut avoir plusieurs infractions. La variable ``jgt_inf_ordre``
-reflète la *gravité* de l'infraction, liée à l'encouru (ici 10 ans=3600 jours de prison).
+Pour un jugement donné on peut avoir plusieurs infractions. 
+La variable ``jgt_inf_ordre``reflète la *gravité* de l'infraction, 
+liée à l'encouru (ici 10 ans=3600 jours de prison).
 
 ```{r}
 inf[.(63050337)][order(jgt_inf_ordre)]

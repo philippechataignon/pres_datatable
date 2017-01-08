@@ -58,7 +58,21 @@ dt[id == 'A',]
 ## Sélectionner une colonne
 
 ```{r}
+# équivaut à dt$value1
 dt[,value1]
+```
+
+Si on passe une *liste*, alors on récupère un *data.table* et
+non un *vecteur*.
+
+```{r}
+dt[,list(value1)]
+```
+
+Entre les [], on peut remplacer *list()* par un point.
+
+```{r}
+dt[,.(value1)]
 ```
 
 ## Les deux en même temps
@@ -81,6 +95,10 @@ dt[id=='A', sum(value1)]
 
 # Somme de value1 et value2 pour chaque id
 ## data.frame
+
+```{r}
+df
+```
 
 ```{r}
 aggregate(cbind(value1, value2) ~ id, 
@@ -220,4 +238,8 @@ system.time(DT[.("S","i"),])
 
 ```{r}
 DT[.("R", "x")]
+```
+
+```{r}
+DT[.("H")]
 ```
