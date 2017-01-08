@@ -146,14 +146,15 @@ dt[
 ```
 # Performance
 
-``data.table`` est très performant sur des tables volumineuses,
-de l'ordre de quelque Go car elles doivent tenir en RAM. 
-On peut utiliser ``dplyr`` pour récupérer les données depuis une
-base de données (PostgreSQL, Netezza, MySQL...) avant de travailler
-avec ``data.table``.
+``data.table`` est très performant sur des tables
+volumineuses, de l'ordre de quelque Go car elles doivent
+tenir en RAM.  On peut utiliser ``dplyr`` pour récupérer les
+données depuis une base de données (PostgreSQL, Netezza,
+MySQL...) avant de travailler avec ``data.table``.
 
-Ici, on va créer un ``data.frame`` de 100 millions de lignes et le ``data.table``
-correspondant et comparer les résultats en terme de temps d'accès.
+Ici, on va créer un ``data.frame`` de 100 millions de lignes
+et le ``data.table`` correspondant et comparer les résultats
+en terme de temps d'accès.
 
 ## Création d'une table de 100 millions de lignes
 
@@ -187,8 +188,8 @@ system.time(ans2 <- DT[x=="R",])
 ```
 
 Par contre, si on fait une deuxième recherche, le temps
-reste identique pour le ``data.frame``, mais est beaucoup plus 
-rapide pour le ``data.table``.
+reste identique pour le ``data.frame``, mais est beaucoup
+plus rapide pour le ``data.table``.
 
 ```{r}
 system.time(ans1 <- DF[DF$x=="E",])
@@ -205,12 +206,13 @@ system.time(ans1 <- DF[DF$x=="M",])
 system.time(ans2 <- DT[x=="M",])
 ```
 
-En fait, dans le cas de filtres simples, ``data.table`` crée automatiquement un index
-lors de la première recherche et le réutilise ensuite.
+En fait, dans le cas de filtres simples, ``data.table`` crée
+automatiquement un index lors de la première recherche et le
+réutilise ensuite.
 
-Une possibilité très intéressante de ``data.table`` est de pouvoir *indexer* par
-une ou plusieurs variables, ce qui va faciliter et accélérer l'accès aux lignes
-correspondantes.
+Une possibilité très intéressante de ``data.table`` est de
+pouvoir *indexer* par une ou plusieurs variables, ce qui va
+faciliter et accélérer l'accès aux lignes correspondantes.
 
 ## Utilisation de clé (key) avec data.table
 

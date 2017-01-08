@@ -14,7 +14,8 @@ jgt0 <- fread('~/data_jgt/dec_pev.csv')
 setnames(jgt0, tolower(names(jgt0)))
 ```
 
-On va garder uniquement les variables d'intérêt en filtrant sur les jugements au tribunal correctionnel.
+On va garder uniquement les variables d'intérêt en filtrant sur les jugements
+au tribunal correctionnel.
 
 ```{r}
 jgt0[etape=='JGT_TC',.(pev_id, date_evt, tgi, ms, 
@@ -22,9 +23,10 @@ jgt0[etape=='JGT_TC',.(pev_id, date_evt, tgi, ms,
 jgt
 ```
 
-On voit qu'il y a 3139602 jugements dans la table. On constate également que les colonnes
-``date_evt`` et ``date_infa`` ne sont pas au format *date* mais au format *character*. On va règler
-ce point en utilisant le package ``lubridate``.
+On voit qu'il y a 3139602 jugements dans la table.  On constate également que
+les colonnes ``date_evt`` et ``date_infa`` ne sont pas au format *date* mais au
+format *character*. On va règler ce point en utilisant le package
+``lubridate``.
 
 ```{r}
 library(lubridate)
@@ -47,8 +49,7 @@ Quelles peines principales pour ces jugements ?
 jgt[year(date_jgt)==2015, .N, by=ms]
 ```
 
-Si on veut que la table soit trié
-par groupe, on remplace *by* par *keyby*.
+Si on veut que la table soit trié par groupe, on remplace *by* par *keyby*.
 
 ```{r}
 jgt[year(date_jgt)==2015, .N, keyby=ms]
@@ -60,16 +61,16 @@ Et si on triait par effectif décroissant ?
 jgt[year(date_jgt)==2015, .N, by=ms][order(-N)]
 ```
 
-C'est quoi cette valeur manquante en troisième ligne ? 
-Toutes les personnes jugées ne sont pas reconnues coupables. En cas de
-relaxe (et les cas d'irresponsabilité pénale), il n'y a pas de peine.
+C'est quoi cette valeur manquante en troisième ligne ?  Toutes les personnes
+jugées ne sont pas reconnues coupables. En cas de relaxe (et les cas
+d'irresponsabilité pénale), il n'y a pas de peine.
 
 ```{r}
 jgt[year(date_jgt)==2015, .N, by=culp][order(-N)]
 ```
 
-Pour un tableau concernant les peines prononcées, il faut 
-ajouter un filtre en ne gardant que les coupables.
+Pour un tableau concernant les peines prononcées, il faut ajouter un filtre en
+ne gardant que les coupables.
 
 ```{r}
 jgt[year(date_jgt)==2015 & culp=='CLP', .N, by=ms][order(-N)]
@@ -122,44 +123,43 @@ print(jgt[.(192376621)])
 print(inf[.(192376621)])
 ```
 
-Autre intérêt : on peut rapidement rapprocher les tables.
-Par exemple on va compter les jugements qui ont jugé
-l'infraction 7325 "Apologie d'un acte de terrorisme"
+Autre intérêt : on peut rapidement rapprocher les tables.  Par exemple on va
+compter les jugements qui ont jugé l'infraction 7325 "Apologie d'un acte de
+terrorisme"
 
 ```{r}
 inf[natinf==7325]
 ```
 
-Pour obtenir les jugements correspondants aux infractions, la syntaxe est assez originale.
-Il faut imaginer qu'on passe les clés issues de la table dans le crochet, ``inf`` dans notre cas,
-à la table ``jgt``. On obtient ainsi les jugements dont l'une des infractions a le code 7325.
+Pour obtenir les jugements correspondants aux infractions, la syntaxe est assez
+originale.  Il faut imaginer qu'on passe les clés issues de la table dans le
+crochet, ``inf`` dans notre cas, à la table ``jgt``. On obtient ainsi les
+jugements dont l'une des infractions a le code 7325.
 
 ```{r}
 jgt[inf[natinf==7325]]
 ```
 
-On peut ensuite faire le tableau des effectifs 
-(en infraction) annuels :
+On peut ensuite faire le tableau des effectifs (en infraction) annuels :
 
 ```{r}
 jgt[inf[natinf==7325], nomatch=0][,.N,by=.(year(date_jgt))]
 ```
 
-Si on veut compter uniquement les jugements, on utilise
-la fonction *unique*.
+Si on veut compter uniquement les jugements, on utilise la fonction *unique*.
 
 ```{r}
 jgt[unique(inf[natinf==7325, .(pev_id)]), nomatch=0][,.N,by=.(year(date_jgt))]
 ```
 
-En 2015, 419 jugements ont été rendus dont l'une des infractions
-jugées était la 7325.
+En 2015, 419 jugements ont été rendus dont l'une des infractions jugées était
+la 7325.
 
 ## Traitement par bloc
 
-Pour un jugement donné on peut avoir plusieurs infractions. 
-La variable ``jgt_inf_ordre``reflète la *gravité* de l'infraction, 
-liée à l'encouru (ici 10 ans=3600 jours de prison).
+Pour un jugement donné on peut avoir plusieurs infractions.  La variable
+``jgt_inf_ordre``reflète la *gravité* de l'infraction, liée à l'encouru (ici 10
+ans=3600 jours de prison).
 
 ```{r}
 inf[.(63050337)][order(jgt_inf_ordre)]
@@ -172,19 +172,20 @@ setkey(inf, pev_id, jgt_inf_ordre)
 inf
 ```
 
-Première possibilité : on utilse .SD qui renvoie dans J les lignes correspondant au
-groupe, dans notre cas, un même pev_id et on applique la fonction ``head`` avec le paramètre 1
-qui renvoit la première ligne.
+Première possibilité : on utilse .SD qui renvoie dans J les lignes
+correspondant au groupe, dans notre cas, un même pev_id et on applique la
+fonction ``head`` avec le paramètre 1 qui renvoit la première ligne.
 
 ```{r}
 infp1 <- inf[,head(.SD,1),by=.(pev_id)]
 infp1
 ```
 
-Une autre solution consiste à passer utiliser l'index. On passe tous
-les identifiants de pev_id ``unique(pev_id)`` et on dit qu'en cas de lignes multiples,
-ce qui est en général le cas, on ne garde que la première (mult='first'). Comme 
-l'ordre fait partie de la clé, on est sûr d'avoir la plus grave.
+Une autre solution consiste à passer utiliser l'index. On passe tous les
+identifiants de pev_id ``unique(pev_id)`` et on dit qu'en cas de lignes
+multiples, ce qui est en général le cas, on ne garde que la première
+(mult='first'). Comme l'ordre fait partie de la clé, on est sûr d'avoir la plus
+grave.
 
 ```{r}
 infp2 <- inf[.(unique(pev_id)), mult="first"]
