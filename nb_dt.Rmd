@@ -149,7 +149,7 @@ DF <- data.frame(
   stringsAsFactors=FALSE
 )
 
-DT <- setDT(DF)
+DT <- as.data.table(DF)
 DT
 ```
 
@@ -201,6 +201,7 @@ correspondantes.
 ```{r}
 system.time(DF[DF$x=="S" & DF$y=="i",])
 ```
+
 ```{r}
 system.time(DT[x=="S" & y=="i",])
 ```
