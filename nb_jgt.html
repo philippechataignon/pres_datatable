@@ -129,27 +129,28 @@ Read 5.1% of 5127055 rows
 Read 10.1% of 5127055 rows
 Read 15.0% of 5127055 rows
 Read 19.9% of 5127055 rows
-Read 24.6% of 5127055 rows
-Read 29.3% of 5127055 rows
-Read 33.9% of 5127055 rows
-Read 38.6% of 5127055 rows
-Read 43.3% of 5127055 rows
-Read 48.0% of 5127055 rows
-Read 52.7% of 5127055 rows
-Read 57.3% of 5127055 rows
-Read 62.0% of 5127055 rows
-Read 66.7% of 5127055 rows
-Read 71.4% of 5127055 rows
-Read 76.1% of 5127055 rows
-Read 80.7% of 5127055 rows
-Read 85.4% of 5127055 rows
-Read 90.1% of 5127055 rows
-Read 94.8% of 5127055 rows
-Read 99.5% of 5127055 rows
+Read 24.8% of 5127055 rows
+Read 29.6% of 5127055 rows
+Read 34.3% of 5127055 rows
+Read 39.0% of 5127055 rows
+Read 43.7% of 5127055 rows
+Read 48.4% of 5127055 rows
+Read 53.1% of 5127055 rows
+Read 57.7% of 5127055 rows
+Read 62.4% of 5127055 rows
+Read 67.1% of 5127055 rows
+Read 71.8% of 5127055 rows
+Read 76.5% of 5127055 rows
+Read 81.1% of 5127055 rows
+Read 85.8% of 5127055 rows
+Read 90.5% of 5127055 rows
+Read 95.2% of 5127055 rows
+Read 99.9% of 5127055 rows
 Read 5127055 rows and 72 (of 72) columns from 1.500 GB file in 00:00:28</code></pre>
 <pre class="r"><code>setnames(jgt0, tolower(names(jgt0)))</code></pre>
 <p>On va garder uniquement les variables d’intérêt en filtrant sur les jugements au tribunal correctionnel.</p>
-<pre class="r"><code>jgt0[etape=='JGT_TC',.(pev_id, date_evt, tgi, ms, tsursis, ssursis, date_infa, culp, qt)] -&gt; jgt
+<pre class="r"><code>jgt0[etape=='JGT_TC',.(pev_id, date_evt, tgi, ms, 
+                       tsursis, ssursis, date_infa, culp, qt)] -&gt; jgt
 jgt</code></pre>
 <pre><code>##             pev_id   date_evt        tgi  ms tsursis ssursis  date_infa
 ##       1:     15955 2008-01-23 TGIANGOULE AME       N         2005-06-05
@@ -238,6 +239,26 @@ jgt</code></pre>
 ## 15: APN     11
 ## 16: APC      1
 ## 17: EDU      1</code></pre>
+<p>Si on veut que la table soit trié par groupe, on remplace <em>by</em> par <em>keyby</em>.</p>
+<pre class="r"><code>jgt[year(date_jgt)==2015, .N, keyby=ms]</code></pre>
+<pre><code>##      ms      N
+##  1:      21371
+##  2: AID    439
+##  3: AJO   1893
+##  4: AME  44209
+##  5: AOB    231
+##  6: APC      1
+##  7: APN     11
+##  8: CFC    373
+##  9: CPN    862
+## 10: DIS   3121
+## 11: EDU      1
+## 12: EPR 233384
+## 13: FRM      1
+## 14: JAM  14382
+## 15: PCO   1233
+## 16: STA    863
+## 17: TIG   6875</code></pre>
 <p>Et si on triait par effectif décroissant ?</p>
 <pre class="r"><code>jgt[year(date_jgt)==2015, .N, by=ms][order(-N)]</code></pre>
 <pre><code>##      ms      N
@@ -298,30 +319,31 @@ jgt</code></pre>
 ## 8: 2015 233384
 ## 9: 2016 173180</code></pre>
 <p>Quantum moyen annuel des peines d’emprisonnement</p>
-<pre class="r"><code>jgt[culp=='CLP' &amp; ms=='EPR' &amp; date_jgt&gt;='2012-01-01', mean(qt), by=year(date_jgt)][order(year)]</code></pre>
+<pre class="r"><code>jgt[culp=='CLP' &amp; ms=='EPR' &amp; date_jgt&gt;='2012-01-01', 
+    mean(qt), 
+    keyby=year(date_jgt)]</code></pre>
 <pre><code>##    year       V1
 ## 1: 2012 217.4441
 ## 2: 2013 218.9957
 ## 3: 2014 220.0372
 ## 4: 2015 222.5034
 ## 5: 2016 228.3544</code></pre>
-<p>Lecture du fichier des infractions</p>
-<pre class="r"><code>inf &lt;- fread('~/data_jgt/jgt_inf.csv')</code></pre>
+<div id="lecture-du-fichier-des-infractions" class="section level2">
+<h2>Lecture du fichier des infractions</h2>
+<pre class="r"><code>inf &lt;- fread(
+  '~/data_jgt/jgt_inf.csv',
+  select=c('PEV_ID', 'NATINF', 'INF_SYNTH', 'JGT_INF_ORDRE', 'ENC_MS', 'ENC_VALEUR')
+  )</code></pre>
 <pre><code>## 
 Read 0.0% of 8860263 rows
-Read 9.7% of 8860263 rows
-Read 19.2% of 8860263 rows
-Read 28.6% of 8860263 rows
-Read 37.9% of 8860263 rows
-Read 47.2% of 8860263 rows
-Read 56.5% of 8860263 rows
-Read 65.8% of 8860263 rows
-Read 75.1% of 8860263 rows
-Read 84.3% of 8860263 rows
-Read 93.6% of 8860263 rows
-Read 8860263 rows and 25 (of 25) columns from 0.859 GB file in 00:00:14</code></pre>
-<pre class="r"><code>setnames(inf, tolower(names(inf)))
-inf &lt;- inf[,.(pev_id, natinf, inf_synth)]</code></pre>
+Read 18.5% of 8860263 rows
+Read 36.8% of 8860263 rows
+Read 54.6% of 8860263 rows
+Read 72.2% of 8860263 rows
+Read 89.7% of 8860263 rows
+Read 8860263 rows and 6 (of 25) columns from 0.859 GB file in 00:00:08</code></pre>
+<p>Passe les noms des variables en minuscule</p>
+<pre class="r"><code>setnames(inf, tolower(names(inf)))</code></pre>
 <p>On va créer une clé (= un index) pour les tables jgt et inf sur la variable pev_id</p>
 <pre class="r"><code>setkey(jgt, pev_id)
 setkey(inf, pev_id)
@@ -351,40 +373,40 @@ print(jgt)</code></pre>
 ## 3139601: 2016-01-18
 ## 3139602: 2016-09-27</code></pre>
 <pre class="r"><code>print(inf)</code></pre>
-<pre><code>##             pev_id natinf inf_synth
-##       1:     15955    258       ACC
-##       2:     15955    213       ROU
-##       3:     16104   7145       VIO
-##       4:     16104  12312       ACC
-##       5:     16878     11       AAP
-##      ---                           
-## 8860259: 192377867   6163       ROU
-## 8860260: 192377867   7544       ROU
-## 8860261: 192377883  20720       VIO
-## 8860262: 192377883     90       AAE
-## 8860263: 192377883  23978       VIO</code></pre>
+<pre><code>##             pev_id natinf inf_synth jgt_inf_ordre enc_ms enc_valeur
+##       1:     15955    258       ACC             1    EPR       1800
+##       2:     15955    213       ROU             2    AME        750
+##       3:     16104   7145       VIO             1    EPR       1080
+##       4:     16104  12312       ACC             2    EPR        360
+##       5:     16878     11       AAP             1    EPR        720
+##      ---                                                           
+## 8860259: 192377867   6163       ROU             2    AME       3750
+## 8860260: 192377867   7544       ROU             3    AME        750
+## 8860261: 192377883  20720       VIO             1    EPR       1080
+## 8860262: 192377883     90       AAE             3    EPR        360
+## 8860263: 192377883  23978       VIO             2    EPR       1080</code></pre>
 <p>On peut maintenant accéder beaucoup plus rapidement aux lignes correspondant à un pev_id donné.</p>
 <pre class="r"><code>print(jgt[.(192376621)])</code></pre>
 <pre><code>##       pev_id        tgi  ms tsursis ssursis culp  qt   date_jgt   date_inf
 ## 1: 192376621 TGIBOBIGNY AME       N          CLP 400 2016-09-30 2016-04-01</code></pre>
 <pre class="r"><code>print(inf[.(192376621)])</code></pre>
-<pre><code>##       pev_id natinf inf_synth
-## 1: 192376621   7151        VE
-## 2: 192376621   7875        VE</code></pre>
+<pre><code>##       pev_id natinf inf_synth jgt_inf_ordre enc_ms enc_valeur
+## 1: 192376621   7151        VE             2    EPR       1080
+## 2: 192376621   7875        VE             1    EPR       1800</code></pre>
 <p>Autre intérêt : on peut rapidement rapprocher les tables. Par exemple on va compter les jugements qui ont jugé l’infraction 7325 “Apologie d’un acte de terrorisme”</p>
 <pre class="r"><code>inf[natinf==7325]</code></pre>
-<pre><code>##         pev_id natinf inf_synth
-##   1:  44874286   7325       AAE
-##   2:  52830532   7325       AAE
-##   3:  57995726   7325       AAE
-##   4:  58980355   7325       AAE
-##   5:  59465276   7325       AAE
-##  ---                           
-## 890: 192205855   7325       AAE
-## 891: 192245627   7325       AAE
-## 892: 192262153   7325       AAE
-## 893: 192269997   7325       AAE
-## 894: 192347679   7325       AAE</code></pre>
+<pre><code>##         pev_id natinf inf_synth jgt_inf_ordre enc_ms enc_valeur
+##   1:  44874286   7325       AAE             1    EPR       1800
+##   2:  52830532   7325       AAE             1    EPR       1800
+##   3:  57995726   7325       AAE             1    EPR       1800
+##   4:  58980355   7325       AAE             1    EPR       1800
+##   5:  59465276   7325       AAE             1    EPR       1800
+##  ---                                                           
+## 890: 192205855   7325       AAE             1    EPR       1800
+## 891: 192245627   7325       AAE             2    EPR       1800
+## 892: 192262153   7325       AAE             1    EPR       1800
+## 893: 192269997   7325       AAE             1    EPR       1800
+## 894: 192347679   7325       AAE             1    EPR       1800</code></pre>
 <p>Pour obtenir les jugements correspondants aux infractions, la syntaxe est assez originale. Il faut imaginer qu’on passe les clés issues de la table dans le crochet, <code>inf</code> dans notre cas, à la table <code>jgt</code>. On obtient ainsi les jugements dont l’une des infractions a le code 7325.</p>
 <pre class="r"><code>jgt[inf[natinf==7325]]</code></pre>
 <pre><code>##         pev_id        tgi  ms tsursis ssursis culp  qt   date_jgt
@@ -399,19 +421,19 @@ print(jgt)</code></pre>
 ## 892: 192262153         NA  NA      NA      NA   NA  NA       &lt;NA&gt;
 ## 893: 192269997 TGINANTERR EPR       N          CLP 180 2016-09-29
 ## 894: 192347679 TGINANTERR                      RLX  NA 2016-09-30
-##        date_inf natinf inf_synth
-##   1: 2009-09-10   7325       AAE
-##   2: 2012-03-22   7325       AAE
-##   3: 2012-03-23   7325       AAE
-##   4: 2012-03-25   7325       AAE
-##   5: 2012-03-11   7325       AAE
-##  ---                            
-## 890:       &lt;NA&gt;   7325       AAE
-## 891: 2016-07-24   7325       AAE
-## 892:       &lt;NA&gt;   7325       AAE
-## 893: 2016-07-21   7325       AAE
-## 894: 2016-07-15   7325       AAE</code></pre>
-<p>On peut ensuite faire le tableau des effectifs annuels :</p>
+##        date_inf natinf inf_synth jgt_inf_ordre enc_ms enc_valeur
+##   1: 2009-09-10   7325       AAE             1    EPR       1800
+##   2: 2012-03-22   7325       AAE             1    EPR       1800
+##   3: 2012-03-23   7325       AAE             1    EPR       1800
+##   4: 2012-03-25   7325       AAE             1    EPR       1800
+##   5: 2012-03-11   7325       AAE             1    EPR       1800
+##  ---                                                            
+## 890:       &lt;NA&gt;   7325       AAE             1    EPR       1800
+## 891: 2016-07-24   7325       AAE             2    EPR       1800
+## 892:       &lt;NA&gt;   7325       AAE             1    EPR       1800
+## 893: 2016-07-21   7325       AAE             1    EPR       1800
+## 894: 2016-07-15   7325       AAE             1    EPR       1800</code></pre>
+<p>On peut ensuite faire le tableau des effectifs (en infraction) annuels :</p>
 <pre class="r"><code>jgt[inf[natinf==7325], nomatch=0][,.N,by=.(year(date_jgt))]</code></pre>
 <pre><code>##    year   N
 ## 1: 2010   1
@@ -420,6 +442,72 @@ print(jgt)</code></pre>
 ## 4: 2014   7
 ## 5: 2015 425
 ## 6: 2016 354</code></pre>
+<p>Si on veut compter uniquement les jugements, on utilise la fonction <em>unique</em>.</p>
+<pre class="r"><code>jgt[unique(inf[natinf==7325, .(pev_id)]), nomatch=0][,.N,by=.(year(date_jgt))]</code></pre>
+<pre><code>##    year   N
+## 1: 2010   1
+## 2: 2012   5
+## 3: 2013   7
+## 4: 2014   6
+## 5: 2015 419
+## 6: 2016 342</code></pre>
+<p>En 2015, 419 jugements ont été rendus dont l’une des infractions jugées était la 7325.</p>
+</div>
+<div id="traitement-par-bloc" class="section level2">
+<h2>Traitement par bloc</h2>
+<p>Pour un jugement donné on peut avoir plusieurs infractions. La variable <code>jgt_inf_ordre</code>reflète la <em>gravité</em> de l’infraction, liée à l’encouru (ici 10 ans=3600 jours de prison).</p>
+<pre class="r"><code>inf[.(63050337)][order(jgt_inf_ordre)]</code></pre>
+<pre><code>##      pev_id natinf inf_synth jgt_inf_ordre enc_ms enc_valeur
+## 1: 63050337   7991       STU             1    EPR       3600
+## 2: 63050337   7993       STU             2    EPR       3600
+## 3: 63050337   7872       VEA             3    EPR       1800
+## 4: 63050337    180       STU             4    EPR        360</code></pre>
+<p>On veut garder uniquement la plus grave = infraction principale</p>
+<pre class="r"><code>setkey(inf, pev_id, jgt_inf_ordre)
+inf</code></pre>
+<pre><code>##             pev_id natinf inf_synth jgt_inf_ordre enc_ms enc_valeur
+##       1:     15955    258       ACC             1    EPR       1800
+##       2:     15955    213       ROU             2    AME        750
+##       3:     16104   7145       VIO             1    EPR       1080
+##       4:     16104  12312       ACC             2    EPR        360
+##       5:     16878     11       AAP             1    EPR        720
+##      ---                                                           
+## 8860259: 192377867   6163       ROU             2    AME       3750
+## 8860260: 192377867   7544       ROU             3    AME        750
+## 8860261: 192377883  20720       VIO             1    EPR       1080
+## 8860262: 192377883  23978       VIO             2    EPR       1080
+## 8860263: 192377883     90       AAE             3    EPR        360</code></pre>
+<p>Première possibilité : on utilse .SD qui renvoie dans J les lignes correspondant au groupe, dans notre cas, un même pev_id et on applique la fonction <code>head</code> avec le paramètre 1 qui renvoit la première ligne.</p>
+<pre class="r"><code>infp1 &lt;- inf[,head(.SD,1),by=.(pev_id)]
+infp1</code></pre>
+<pre><code>##             pev_id natinf inf_synth jgt_inf_ordre enc_ms enc_valeur
+##       1:     15955    258       ACC             1    EPR       1800
+##       2:     16104   7145       VIO             1    EPR       1080
+##       3:     16878     11       AAP             1    EPR        720
+##       4:     19235   5739       STU             1    EPR       1080
+##       5:     19277   1247       ROU             1    EPR        720
+##      ---                                                           
+## 5219517: 192377840    180       STU             1    EPR        360
+## 5219518: 192377847   1247       ROU             1    EPR        720
+## 5219519: 192377855  28152       VEA             1    EPR       1800
+## 5219520: 192377867   1247       ROU             1    EPR        720
+## 5219521: 192377883  20720       VIO             1    EPR       1080</code></pre>
+<p>Une autre solution consiste à passer utiliser l’index. On passe tous les identifiants de pev_id <code>unique(pev_id)</code> et on dit qu’en cas de lignes multiples, ce qui est en général le cas, on ne garde que la première (mult=‘first’). Comme l’ordre fait partie de la clé, on est sûr d’avoir la plus grave.</p>
+<pre class="r"><code>infp2 &lt;- inf[.(unique(pev_id)), mult=&quot;first&quot;]
+infp2</code></pre>
+<pre><code>##             pev_id natinf inf_synth jgt_inf_ordre enc_ms enc_valeur
+##       1:     15955    258       ACC             1    EPR       1800
+##       2:     16104   7145       VIO             1    EPR       1080
+##       3:     16878     11       AAP             1    EPR        720
+##       4:     19235   5739       STU             1    EPR       1080
+##       5:     19277   1247       ROU             1    EPR        720
+##      ---                                                           
+## 5219517: 192377840    180       STU             1    EPR        360
+## 5219518: 192377847   1247       ROU             1    EPR        720
+## 5219519: 192377855  28152       VEA             1    EPR       1800
+## 5219520: 192377867   1247       ROU             1    EPR        720
+## 5219521: 192377883  20720       VIO             1    EPR       1080</code></pre>
+</div>
 
 
 

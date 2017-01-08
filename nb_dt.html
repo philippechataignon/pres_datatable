@@ -188,8 +188,31 @@ dt[id == 'A',]</code></pre>
 </div>
 <div id="selectionner-une-colonne-1" class="section level2">
 <h2>Sélectionner une colonne</h2>
-<pre class="r"><code>dt[,value1]</code></pre>
+<pre class="r"><code># équivaut à dt$value1
+dt[,value1]</code></pre>
 <pre><code>## [1] 5 9 4 3 2 7 6 1</code></pre>
+<p>Si on passe une <em>liste</em>, alors on récupère un <em>data.table</em> et non un <em>vecteur</em>.</p>
+<pre class="r"><code>dt[,list(value1)]</code></pre>
+<pre><code>##    value1
+## 1:      5
+## 2:      9
+## 3:      4
+## 4:      3
+## 5:      2
+## 6:      7
+## 7:      6
+## 8:      1</code></pre>
+<p>Entre les [], on peut remplacer <em>list()</em> par un point.</p>
+<pre class="r"><code>dt[,.(value1)]</code></pre>
+<pre><code>##    value1
+## 1:      5
+## 2:      9
+## 3:      4
+## 4:      3
+## 5:      2
+## 6:      7
+## 7:      6
+## 8:      1</code></pre>
 </div>
 <div id="les-deux-en-meme-temps-1" class="section level2">
 <h2>Les deux en même temps</h2>
@@ -214,6 +237,16 @@ dt[id == 'A',]</code></pre>
 <h1>Somme de value1 et value2 pour chaque id</h1>
 <div id="data.frame-2" class="section level2">
 <h2>data.frame</h2>
+<pre class="r"><code>df</code></pre>
+<pre><code>##   id value1 value2
+## 1  A      5      8
+## 2  A      9      4
+## 3  B      4      6
+## 4  C      3      3
+## 5  B      2      2
+## 6  C      7      1
+## 7  A      6      5
+## 8  B      1      7</code></pre>
 <pre class="r"><code>aggregate(cbind(value1, value2) ~ id, 
           df, 
           sum
@@ -287,44 +320,44 @@ DF &lt;- data.frame(
   stringsAsFactors=FALSE
 )
 
-DT &lt;- setDT(DF)
+DT &lt;- as.data.table(DF)
 DT</code></pre>
-<pre><code>##            x y         v
-##         1: A a 0.9369362
-##         2: A a 0.5339574
-##         3: A a 0.1352283
-##         4: A a 0.3521051
-##         5: A a 0.9535228
-##        ---              
-## 100000000: Z z 0.6561937
-## 100000001: Z z 0.1654046
-## 100000002: Z z 0.2714658
-## 100000003: Z z 0.9495528
-## 100000004: Z z 0.1839448</code></pre>
+<pre><code>##            x y          v
+##         1: A a 0.89227811
+##         2: A a 0.42309922
+##         3: A a 0.23206042
+##         4: A a 0.79512281
+##         5: A a 0.01801900
+##        ---               
+## 100000000: Z z 0.05601536
+## 100000001: Z z 0.56735785
+## 100000002: Z z 0.14066865
+## 100000003: Z z 0.38290439
+## 100000004: Z z 0.24373528</code></pre>
 </div>
 <div id="filtre-sur-une-variable" class="section level2">
 <h2>Filtre sur une variable</h2>
 <p>On filtre sur x égal à R avec le <code>data.frame</code></p>
 <pre class="r"><code>system.time(ans1 &lt;- DF[DF$x==&quot;R&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
-##   0.712   0.096   0.810</code></pre>
+##   1.572   0.240   1.810</code></pre>
 <p>On filtre sur x égal à R avec le <code>data.table</code> : les temps sont similaires.</p>
 <pre class="r"><code>system.time(ans2 &lt;- DT[x==&quot;R&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
-##   0.512   0.096   0.610</code></pre>
+##   0.516   0.096   0.611</code></pre>
 <p>Par contre, si on fait une deuxième recherche, le temps reste identique pour le <code>data.frame</code>, mais est beaucoup plus rapide pour le <code>data.table</code>.</p>
 <pre class="r"><code>system.time(ans1 &lt;- DF[DF$x==&quot;E&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
-##   0.720   0.088   0.808</code></pre>
+##   1.128   0.204   1.332</code></pre>
 <pre class="r"><code>system.time(ans2 &lt;- DT[x==&quot;E&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
-##   0.104   0.000   0.103</code></pre>
+##   0.100   0.004   0.102</code></pre>
 <pre class="r"><code>system.time(ans1 &lt;- DF[DF$x==&quot;M&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
-##   0.692   0.104   0.794</code></pre>
+##   1.124   0.188   1.311</code></pre>
 <pre class="r"><code>system.time(ans2 &lt;- DT[x==&quot;M&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
-##   0.100   0.012   0.111</code></pre>
+##   0.088   0.028   0.116</code></pre>
 <p>En fait, dans le cas de filtres simples, <code>data.table</code> crée automatiquement un index lors de la première recherche et le réutilise ensuite.</p>
 <p>Une possibilité très intéressante de <code>data.table</code> est de pouvoir <em>indexer</em> par une ou plusieurs variables, ce qui va faciliter et accélérer l’accès aux lignes correspondantes.</p>
 </div>
@@ -334,16 +367,16 @@ DT</code></pre>
 <h3>Absence de clé</h3>
 <pre class="r"><code>system.time(DF[DF$x==&quot;S&quot; &amp; DF$y==&quot;i&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
-##   1.352   0.252   1.602</code></pre>
+##   1.652   0.284   1.938</code></pre>
 <pre class="r"><code>system.time(DT[x==&quot;S&quot; &amp; y==&quot;i&quot;,])</code></pre>
 <pre><code>##    user  system elapsed 
-##   1.328   0.272   1.602</code></pre>
+##   1.384   0.216   1.602</code></pre>
 </div>
 <div id="creation-dune-cle-sur-les-variables-x-et-y" class="section level3">
 <h3>Création d’une clé sur les variables x et y</h3>
 <pre class="r"><code>system.time(setkey(DT, x, y))</code></pre>
 <pre><code>##    user  system elapsed 
-##   1.072   0.076   1.146</code></pre>
+##   1.052   0.092   1.145</code></pre>
 </div>
 <div id="mesures-de-temps-dacces" class="section level3">
 <h3>Mesures de temps d’accès</h3>
@@ -352,17 +385,30 @@ DT</code></pre>
 ##   0.004   0.000   0.004</code></pre>
 <pre class="r"><code>DT[.(&quot;R&quot;, &quot;x&quot;)]</code></pre>
 <pre><code>##         x y          v
-##      1: R x 0.36583793
-##      2: R x 0.71845164
-##      3: R x 0.43527681
-##      4: R x 0.69635376
-##      5: R x 0.88626130
+##      1: R x 0.06311266
+##      2: R x 0.58218520
+##      3: R x 0.88800338
+##      4: R x 0.01691188
+##      5: R x 0.89368078
 ##     ---               
-## 147925: R x 0.63896849
-## 147926: R x 0.92151816
-## 147927: R x 0.90292854
-## 147928: R x 0.14388571
-## 147929: R x 0.07991022</code></pre>
+## 147925: R x 0.71328627
+## 147926: R x 0.79686936
+## 147927: R x 0.24559712
+## 147928: R x 0.25278990
+## 147929: R x 0.57399252</code></pre>
+<pre class="r"><code>DT[.(&quot;H&quot;)]</code></pre>
+<pre><code>##          x y          v
+##       1: H a 0.58797941
+##       2: H a 0.03627399
+##       3: H a 0.35417273
+##       4: H a 0.91946265
+##       5: H a 0.62886182
+##      ---               
+## 3846150: H z 0.35063918
+## 3846151: H z 0.60588884
+## 3846152: H z 0.47940874
+## 3846153: H z 0.59899240
+## 3846154: H z 0.40671855</code></pre>
 </div>
 </div>
 </div>
