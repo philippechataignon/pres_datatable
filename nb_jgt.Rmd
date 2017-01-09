@@ -181,9 +181,9 @@ infp1 <- inf[,head(.SD,1),by=.(pev_id)]
 infp1
 ```
 
-Une autre solution consiste à passer utiliser l'index. On passe tous les
+Une autre solution consiste à utiliser l'index. On passe tous les
 identifiants de pev_id ``unique(pev_id)`` et on dit qu'en cas de lignes
-multiples, ce qui est en général le cas, on ne garde que la première
+multiples, on ne garde que la première
 (mult='first'). Comme l'ordre fait partie de la clé, on est sûr d'avoir la plus
 grave.
 
