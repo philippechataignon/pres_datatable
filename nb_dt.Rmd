@@ -9,13 +9,21 @@ output:
 # data.frame
 
 ```{r}
+library(tibble)
+library(data.table)
 df <- data.frame(
   id=c('A', 'A', 'B', 'C', 'B', 'C', 'A', 'B'), 
   value1=c(5,9,4,3,2,7,6,1), 
   value2=c(8,4,6,3,2,1,5,7),
   stringsAsFactors = F
 )
+dft <- as_tibble(df)
+dt <- as.data.table(df)
+
 df
+dft
+dt
+
 ```
 
 ## Filtrer les lignes
@@ -27,35 +35,22 @@ df[df$id == 'A',]
 ## Sélectionner une colonne
 
 ```{r}
+df$value1
 df[,"value1"]
+dft$value1
+dft[,"value1"]
+dt$value1
+dt[,"value1"]
+dt[,value1]
 ```
 
 ## Les deux en même temps
 
 ```{r}
+df[df$id == 'A',]$value1
 df[df$id == 'A', "value1"]
 ```
 
-# data.table
-
-```{r}
-library(data.table)
-dt <- data.table(
-  id=c('A', 'A', 'B', 'C', 'B', 'C', 'A', 'B'), 
-  value1=c(5,9,4,3,2,7,6,1), 
-  value2=c(8,4,6,3,2,1,5,7)
-)
-dt
-```
-
-## Filtrer les lignes
-
-```{r}
-# la syntaxe df fonctionne également
-dt[id == 'A',]
-```
-
-## Sélectionner une colonne
 
 ```{r}
 # équivaut à dt$value1
@@ -86,6 +81,7 @@ dt[id == 'A', value1]
 
 ```{r}
 sum(df[df$id == 'A', "value1"])
+sum(dft[dft$id == 'A', "value1"])
 ```
 
 ## data.table
@@ -107,10 +103,24 @@ aggregate(cbind(value1, value2) ~ id,
 )
 ```
 
+## dplyr
+```{r}
+library(dplyr)
+dft %>% 
+  group_by(id) %>% 
+  summarize(
+    value1 = sum(value1),
+    value2 = sum(value2)
+  )
+```
+
 ## data.table
 ```{r}
 dt[,
-   .(value1=sum(value1), value2=sum(value2)), 
+   .(
+     value1=sum(value1), 
+     value2=sum(value2)
+   ), 
    by=id
 ]
 ```
@@ -126,6 +136,17 @@ aggregate(
 )
 ```
 
+## dplyr
+```{r}
+library(dplyr)
+dft %>% 
+  filter(id != "B") %>% 
+  group_by(id) %>% 
+  summarize(
+    value1 = sum(value1),
+    value2 = sum(value2)
+  )
+```
 ## data.table
 ```{r}
 dt[
@@ -159,16 +180,16 @@ en terme de temps d'accès.
 ## Création d'une table de 100 millions de lignes
 
 ```{r}
-grpsize = ceiling(1e8/26^2)
+grpsize <- ceiling(1e8/26^2) %/% 26 * 26
+print(grpsize)
 
-DF <- data.frame(
+DT <- data.table(
   x=rep(LETTERS,each=26*grpsize),
-  y=rep(letters,each=grpsize),
-  v=runif(grpsize*26^2),
-  stringsAsFactors=FALSE
+  y=rep(letters,26,each=grpsize),
+  v=runif(grpsize*26^2)
 )
 
-DT <- as.data.table(DF)
+DF <- as_tibble(DT)
 DT
 ```
 
@@ -178,6 +199,7 @@ On filtre sur x égal à R avec le ``data.frame``
 
 ```{r}
 system.time(ans1 <- DF[DF$x=="R",])
+ans1
 ```
 
 On filtre sur x égal à R avec le ``data.table`` : les temps
